@@ -1,6 +1,7 @@
 # Импортируем библиотеку
 import random
 import pygame
+import os
 # Достаем из библиотеки нужный нам функционал
 from pygame.constants import QUIT, K_DOWN, K_UP , K_RIGHT, K_LEFT
 # Инициализация
@@ -9,52 +10,71 @@ pygame.init()
 FPS = pygame.time.Clock()
 HEIGHT = 800
 WIDTH = 1200
+FONT = pygame.font.SysFont('Verdana',20)
+
 COLOR_WHITE = (255,255,255)
 COLOR_BLACK = (0,0,0)
 COLOR_BLUE = (0,0,255)
 COLOR_GREEN = (0,255,0)
 # Создаем экземпляр дисплея - наше окно, где будет игра
 main_display = pygame.display.set_mode((WIDTH,HEIGHT))
+# BG
+bg = pygame.transform.scale(pygame.image.load('background.png'),(WIDTH,HEIGHT))
+bg_X1 = 0
+bg_X2 = bg.get_width()
+bg_move = 3
+# goose anim
+IMAGE_PATH = "goose-anim"
+PLAYER_IMAGES = os.listdir(IMAGE_PATH)
+print(PLAYER_IMAGES)
 # Создаем размеры игрока
-player_size = (20,20)
 # Создаем экземпляр игрока
-player = pygame.Surface(player_size)
+player = pygame.image.load('player.png').convert_alpha() # pygame.Surface(player_size)
+player_size = (player.get_width(), player.get_height())
+
 # Заливаем нашего игрока
-player.fill(COLOR_WHITE)
+# player.fill(COLOR_BLACK)
 # Считываем координаты
-player_rect = player.get_rect();
+player_rect = pygame.Rect(0, HEIGHT/2,*player_size)
+# player_rect = player.get_rect();
 # Скорость игрока
-player_move_down = [0,1];
-player_move_up = [0,-1];
-player_move_left = [-1,0];
-player_move_right = [1,0];
+player_move_down = [0,4];
+player_move_up = [0,-4];
+player_move_left = [-4,0];
+player_move_right = [4,0];
 
 
 # Создание врага
 def create_enemy():
-    enemy_size = (30, 30)
-    enemy = pygame.Surface(enemy_size)
-    enemy.fill(COLOR_BLUE)
-    enemy_rect = pygame.Rect(WIDTH, random.randint(0, HEIGHT), *enemy_size)
-    enemy_move = [random.randint(-6,-1), 0]
+    enemy = pygame.image.load('enemy.png').convert_alpha()
+    enemy_size = (enemy.get_width(),enemy.get_height())
+    enemy_rect = pygame.Rect(WIDTH, random.randint(20, HEIGHT-20), *enemy_size)
+    enemy_move = [random.randint(-8,-4), 0]
     return [enemy, enemy_rect, enemy_move]
+
+
+
+def create_bonus():
+    bonus = pygame.image.load('bonus.png').convert_alpha()
+    bonus_size = (bonus.get_width(),bonus.get_height())
+    bonus_rect = pygame.Rect(random.randint(20,WIDTH-20), 0-bonus.get_height(), *bonus_size)
+    bonus_move = [0,random.randint(4, 8)]
+    return [bonus, bonus_rect, bonus_move]
 
 CREATE_ENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(CREATE_ENEMY, 1500)
 
-def create_bonus():
-    bonus_size = (30, 30)
-    bonus = pygame.Surface(bonus_size)
-    bonus.fill(COLOR_GREEN)
-    bonus_rect = pygame.Rect(random.randint(0,WIDTH), 0, *bonus_size)
-    bonus_move = [0,random.randint(1, 6)]
-    return [bonus, bonus_rect, bonus_move]
-
 CREATE_BONUS = pygame.USEREVENT + 2
 pygame.time.set_timer(CREATE_BONUS, 1500)
 
+CHANGE_IMAGE = pygame.USEREVENT + 3
+pygame.time.set_timer(CHANGE_IMAGE, 200)
+
 enemies = []
 bonuses = []
+score = 0
+text = "PYTHON"
+image_index = 0
 # Переменная для цикла
 playing = True
 
@@ -69,8 +89,23 @@ while playing:
             enemies.append(create_enemy())
         if event.type == CREATE_BONUS:
             bonuses.append(create_bonus())
-            
-    main_display.fill(COLOR_BLACK)
+        if event.type == CHANGE_IMAGE:
+            player = pygame.image.load(os.path.join(IMAGE_PATH,PLAYER_IMAGES[image_index]))
+            image_index+=1
+            if image_index >= len(PLAYER_IMAGES):
+                image_index = 0
+
+    bg_X1 -= bg_move
+    bg_X2 -= bg_move
+# Если ширина меньше нашего bg, то перерисовываем, чтобы обновить
+    if bg_X1 < -bg.get_width():
+        bg_X1 = bg.get_width()
+# Если ширина меньше нашего bg, то перерисовываем, чтобы обновить
+    if bg_X2 < -bg.get_width():
+        bg_X2 = bg.get_width()
+        # Добавляем отрисовку
+    main_display.blit(bg,(bg_X1,0))
+    main_display.blit(bg,(bg_X2,0))
     # Отслеживаем нажатые клавиши
     keys = pygame.key.get_pressed()
     
@@ -91,52 +126,25 @@ while playing:
     for enemy in enemies:
         enemy[1] = enemy[1].move(enemy[2])
         main_display.blit(enemy[0],enemy[1])
-
+        if player_rect.colliderect(enemy[1]):
+            playing = False
 
     for bonus in bonuses:
         bonus[1] = bonus[1].move(bonus[2])
         main_display.blit(bonus[0],bonus[1])
-
-# Для Enemy
-    # enemy_rect = enemy_rect.move(enemy_move)
-# Пример №1: того как можно сделать отбитие от стенок нашего окна
-    # if player_rect.bottom >= HEIGHT:
-    #     player_speed[1] = -player_speed[1]
-
-    # if player_rect.right >= WIDTH:
-    #     player_speed[0] = -player_speed[0]
-        
-    # if player_rect.top <= 0:
-    #     player_speed[1] = -player_speed[1]
-
-    # if player_rect.left <= 0:
-    #     player_speed[0] = -player_speed[0]
- 
-
- # Пример №2: того как можно сделать отбитие от стенок нашего окна 
-    # if player_rect.bottom >= HEIGHT:
-    #     player_speed = random.choice(([1,-1],[-1,-1]))
-
-    # if player_rect.right >= WIDTH:
-    #     player_speed = random.choice(([-1,1],[1,1]))
-        
-    # if player_rect.top <= 0:
-    #     player_speed = random.choice(([-1,-1],[-1,1]))
-
-    # if player_rect.left <= 0:
-    #     player_speed = random.choice(([1,1],[1,-1]))
-
-
-
+        if player_rect.colliderect(bonus[1]):
+            bonuses.pop(bonuses.index(bonus))
+            score +=1
 
     # Добавляем игрока на поле
+    main_display.blit(FONT.render(str(text),True,COLOR_BLACK),(20,20))
+    main_display.blit(FONT.render(str(score),True,COLOR_BLACK),(WIDTH-50,20))
     main_display.blit(player,player_rect)
     # main_display.blit(enemy,enemy_rect)
     # Для движения игрока
     # player_rect = player_rect.move(player_speed)
 # Обновляем дисплей, чтобы увидеть изменения
     # print(len(enemies))
-    print(len(bonuses))
     
     pygame.display.flip()
 
