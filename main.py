@@ -60,13 +60,13 @@ def create_bonus():
     bonus_rect = pygame.Rect(random.randint(20,WIDTH-20), 0-bonus.get_height(), *bonus_size)
     bonus_move = [0,random.randint(4, 8)]
     return [bonus, bonus_rect, bonus_move]
-
+# Добавляет врага
 CREATE_ENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(CREATE_ENEMY, 1500)
-
+# Добавляет бонусы на экран
 CREATE_BONUS = pygame.USEREVENT + 2
 pygame.time.set_timer(CREATE_BONUS, 1500)
-
+# Добавляет изображение анимации
 CHANGE_IMAGE = pygame.USEREVENT + 3
 pygame.time.set_timer(CHANGE_IMAGE, 200)
 
