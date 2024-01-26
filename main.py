@@ -77,7 +77,7 @@ text = "PYTHON"
 image_index = 0
 # Переменная для цикла
 playing = True
-
+# Цикл для запуска приложения
 while playing:
     FPS.tick(120)
     for event in pygame.event.get():
@@ -147,11 +147,11 @@ while playing:
     # print(len(enemies))
     
     pygame.display.flip()
-
+# Очистка врагов из массива, чтобы не грузить память
     for enemy in enemies:
         if enemy[1].left < 0:
             enemies.pop(enemies.index(enemy))
-
+# Очистка подарков из массива, чтобы не грузить память
     for bonus in bonuses:
         if bonus[1].bottom > HEIGHT:
             bonuses.pop(bonuses.index(bonus))
